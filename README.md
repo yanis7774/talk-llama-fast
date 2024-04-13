@@ -43,6 +43,12 @@ based on talk-llama https://github.com/ggerganov/whisper.cpp
 - wav2lip can be used with original SillyTavern (just xtts+wav2lip, no speech-to-text, no voice interruption). No extra extensions required, just follow installation process.
 - VRAM usage: mistral-7B-q5_0 + whisper-medium-q5_0.bin: 7.5 GB, xtts: 2.7 GB, wav2lip: 0.8 GB = Total of 11.0 GB. If you have just 8 GB: use smaller quant of llama!; try using --lowvram with xtts or even start xtts on cpu instead of gpu (`-d=cpu` but it is slow). Try to turn off streaming in xtts: set streaming chunk size as a single number in xtts_wav2lip.bat (--wav-chunk-sizes 9999). It will be slower, but less overhead for multiple small requests.
 
+## Languages
+Whisper STT supported languages: Afrikaans, Arabic, Armenian, Azerbaijani, Belarusian, Bosnian, Bulgarian, Catalan, Chinese, Croatian, Czech, Danish, Dutch, English, Estonian, Finnish, French, Galician, German, Greek, Hebrew, Hindi, Hungarian, Icelandic, Indonesian, Italian, Japanese, Kannada, Kazakh, Korean, Latvian, Lithuanian, Macedonian, Malay, Marathi, Maori, Nepali, Norwegian, Persian, Polish, Portuguese, Romanian, Russian, Serbian, Slovak, Slovenian, Spanish, Swahili, Swedish, Tagalog, Tamil, Thai, Turkish, Ukrainian, Urdu, Vietnamese, and Welsh.
+
+XTTSv2 supported languages: English (en), Spanish (es), French (fr), German (de), Italian (it), Portuguese (pt), Polish (pl), Turkish (tr), Russian (ru), Dutch (nl), Czech (cs), Arabic (ar), Chinese (zh-cn), Japanese (ja), Hungarian (hu), Korean (ko) Hindi (hi).
+
+Mistral officially supports: English, French, Italian, German, Spanish. But it can also speak some other languages, but not so fluent (e.g. Russian is not officially supported, but it is there).
 
 ## Requirements
 - Windows 10/11 x64
