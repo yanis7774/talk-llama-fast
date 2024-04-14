@@ -6,6 +6,8 @@ based on talk-llama https://github.com/ggerganov/whisper.cpp
 
 [new] Видео на русском, v0.1.0 с wav2lip: https://youtu.be/ciyEsZpzbM8
 
+ТГ: https://t.me/tensorbanana
+
 ## I added:
 - XTTSv2 support
 - UTF8 and Russian
@@ -20,6 +22,7 @@ based on talk-llama https://github.com/ggerganov/whisper.cpp
 - langchain google-serper
 
 ## News
+- [2024.04.14] Source code was broken (conflicting versions, build failed), I synced everything. Builiding should be working now.
 - [2024.04.06] v0.1.3. Removed --xtts-control-path param. No other changes. To make this version work - please update (pip install) my xtts_api_server, tts, and wav2lip if you have previous versions installed.
 - [2024.04.05] v0.1.2. Now everything is installed into 2 separate condas. Redownload zip, follow instructions below.
 - [2024.04.04] v0.1.0. Added streaming wav2lip. With super low latency: from user speech to video it's just 1.5 seconds! Had to rewrite sillyTavern-extras, wav2lip, xtts-api-server, tts (all forked to my github). Streaming wav2lip can be used in SillyTavern. Setup guide and video are coming in a next few days. 
