@@ -2,9 +2,12 @@
 
 based on talk-llama https://github.com/ggerganov/whisper.cpp
 
-[new] English video, v0.1.3 with wav2lip: https://www.youtube.com/watch?v=ORDfSG4ltD4
+[new] Видео-инструкция на русском (Russian video guide, auto English subs) https://www.youtube.com/watch?v=0MEZ84uH4-E
 
-[new] Видео на русском, v0.1.0 с wav2lip: https://youtu.be/ciyEsZpzbM8
+English demo video, v0.1.3 with wav2lip: https://www.youtube.com/watch?v=ORDfSG4ltD4
+
+Видео на русском, v0.1.0 с wav2lip: https://youtu.be/ciyEsZpzbM8
+
 
 ТГ: https://t.me/tensorbanana
 
@@ -111,7 +114,7 @@ conda deactivate
 
 ## Running
 - In /SillyTavern-extras/ double click `silly_extras.bat`. Wait until it downloads wav2lip checkpoint and makes face detection for new video if needed.
-- In /xtts/ double click `xtts_wav2lip.bat` to start xtts server with wav2lip video. OR run xtts_streaming_audio.bat to start xtts server with audio without video. NOTE: On the first run xtts will download DeepSpeed from github. If deepspeed fails to download "Warning: Retyring (Retry... ReadTimoutError...") - turn on VPN to download deepspeed and xtts checkpoint, then you can turn it off)
+- In /xtts/ double click `xtts_wav2lip.bat` to start xtts server with wav2lip video. OR run xtts_streaming_audio.bat to start xtts server with audio without video. NOTE: On the first run xtts will download DeepSpeed from github. If deepspeed fails to download "Warning: Retyring (Retry... ReadTimoutError...") - turn on VPN to download deepspeed (27MB) and xtts checkpoint (1.8GB), then you can turn it off). Xtts checkpoint can be downloaded without VPN. But if you interrupt download - checkpoint will be broken - you have to manually delete \xtts_models\ dir and restart xtts. 
 - Double click `talk-llama-wav2lip.bat` or `talk-llama-wav2lip-ru.bat` or talk-llama-just-audio.bat. Don't run exe, just bat. NOTE: if you have cyrillic (Russain) letters in bot name or path: don't run bat, instead open cmd in the folder where bats are located. Then copy all commands from talk-llama-wav2lip-ru.bat and paste into cmd (there is en encoding problem with cyrillic letters in bats). Optional: you can make desktop shortcuts to all those .bats for fast access.
 - Start speaking. 
 
