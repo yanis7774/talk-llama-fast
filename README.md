@@ -2,7 +2,7 @@
 
 based on talk-llama https://github.com/ggerganov/whisper.cpp
 
-[new] Видео-инструкция на русском (Russian video guide, auto English subs) https://www.youtube.com/watch?v=0MEZ84uH4-E
+[new] Видео-инструкция на русском (Russian guide, English subs) https://youtu.be/0MEZ84uH4-E
 
 English demo video, v0.1.3 with wav2lip: https://www.youtube.com/watch?v=ORDfSG4ltD4
 
