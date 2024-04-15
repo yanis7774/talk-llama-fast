@@ -71,7 +71,7 @@ Mistral officially supports: English, French, Italian, German, Spanish. But it c
 
 install [miniconda](https://docs.anaconda.com/free/miniconda/). Make sure to check "Add Miniconda3 to my PATH environment variable" - it's important during installation.
 
-Extract talk-llama-fast-v0.1.X.zip somewhere. Open \xtts folder that was inside this zip. Open a `cmd` inside this folder.
+Open \xtts\ folder where you extracted talk-llama-fast-v0.1.3.zip. In this folder open a `cmd` and run line by line:
 ```
 conda create -n xtts
 conda activate xtts
