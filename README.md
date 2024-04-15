@@ -69,7 +69,7 @@ Mistral officially supports: English, French, Italian, German, Spanish. But it c
 - Download LLM to same folder [mistral-7b-instruct-v0.2.Q5_0](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/blob/main/mistral-7b-instruct-v0.2.Q5_0.gguf), you can try q4_K_S or q3 if you don't have much VRAM.
 - Now let's install my modified sillyTavern-extras, wav2lip, xtts-api-server, tts (all from my github). Note: xtts-api-server conflicts with SillyTavern-Extras (xtts deepspeed needs torch 2.1 but some package in extras (torchvision 0.17.2) needs torch 2.2). Before that i was able to run them both in 3.11, but users reported several problems trying to install xtts-api-server together with SillyTavern-Extras without conda. So now we will install everything with 2 different conda environments with different torches (7 GB for each conda, i know it is big). It has 2 parts: for xtts and for SillyTavern-Extras. If you know how to install everything in 1 conda environment step by step - open a PR.
 
-install [miniconda](https://docs.anaconda.com/free/miniconda/). Make sure to check "Add Miniconda3 to my PATH environment variable" - it's important during installation.
+install [miniconda](https://docs.anaconda.com/free/miniconda/). During installation make sure to check "Add Miniconda3 to my PATH environment variable" - it's important.
 
 Open \xtts\ folder where you extracted talk-llama-fast-v0.1.3.zip. In this folder open a `cmd` and run line by line:
 ```
