@@ -69,13 +69,14 @@ Mistral officially supports: English, French, Italian, German, Spanish. But it c
 - Download LLM to same folder [mistral-7b-instruct-v0.2.Q5_0](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/blob/main/mistral-7b-instruct-v0.2.Q5_0.gguf), you can try q4_K_S or q3 if you don't have much VRAM.
 - Now let's install my modified sillyTavern-extras, wav2lip, xtts-api-server, tts (all from my github). Note: xtts-api-server conflicts with SillyTavern-Extras (xtts deepspeed needs torch 2.1 but some package in extras (torchvision 0.17.2) needs torch 2.2). Before that i was able to run them both in 3.11, but users reported several problems trying to install xtts-api-server together with SillyTavern-Extras without conda. So now we will install everything with 2 different conda environments with different torches (7 GB for each conda, i know it is big). It has 2 parts: for xtts and for SillyTavern-Extras. If you know how to install everything in 1 conda environment step by step - open a PR.
 
-install [miniconda](https://docs.anaconda.com/free/miniconda/) Make sure to check "Add Miniconda3 to my PATH environment variable" - it's important during installation.
+install [miniconda](https://docs.anaconda.com/free/miniconda/). Make sure to check "Add Miniconda3 to my PATH environment variable" - it's important during installation.
 
-create folder xtts. Open a cmd inside this folder
+Extract talk-llama-fast-v0.1.X.zip somewhere. Open \xtts folder that was inside this zip. Open a `cmd` inside this folder.
 ```
 conda create -n xtts
 conda activate xtts
 conda install python=3.11
+conda install git
 
 pip install git+https://github.com/Mozer/xtts-api-server pydub
 pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 --index-url https://download.pytorch.org/whl/cu118
@@ -109,9 +110,9 @@ conda deactivate
 
 
 ## Running
-- In /SillyTavern-extras/ run `silly_extras.bat`. Wait until it downloads wav2lip checkpoint and makes face detection for new video if needed.
-- In /xtts/ dir run `xtts_wav2lip.bat` to start xtts server with wav2lip video. OR run xtts_streaming_audio.bat to start xtts server with audio without video.
-- Run `talk-llama-wav2lip.bat` or `talk-llama-wav2lip-ru.bat` or talk-llama-just-audio.bat. Don't run exe, just bat. NOTE: if you have cyrillic (Russain) letters in bot name or path: don't run bat, instead open cmd in the folder where bats are located. Then copy all commands from talk-llama-wav2lip-ru.bat and paste into cmd (there is en encoding problem with cyrillic letters in bats). Optional: you can make desktop shortcuts to all those .bats for fast access.
+- In /SillyTavern-extras/ double click `silly_extras.bat`. Wait until it downloads wav2lip checkpoint and makes face detection for new video if needed.
+- In /xtts/ double click `xtts_wav2lip.bat` to start xtts server with wav2lip video. OR run xtts_streaming_audio.bat to start xtts server with audio without video. NOTE: On the first run xtts will download DeepSpeed from github. If deepspeed fails to download "Warning: Retyring (Retry... ReadTimoutError...") - turn on VPN to download deepspeed and xtts checkpoint, then you can turn it off)
+- Double click `talk-llama-wav2lip.bat` or `talk-llama-wav2lip-ru.bat` or talk-llama-just-audio.bat. Don't run exe, just bat. NOTE: if you have cyrillic (Russain) letters in bot name or path: don't run bat, instead open cmd in the folder where bats are located. Then copy all commands from talk-llama-wav2lip-ru.bat and paste into cmd (there is en encoding problem with cyrillic letters in bats). Optional: you can make desktop shortcuts to all those .bats for fast access.
 - Start speaking. 
 
 ### Tweaks for 6 and 8 GB vram
