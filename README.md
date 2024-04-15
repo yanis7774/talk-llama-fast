@@ -17,12 +17,14 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - Speed-ups: streaming for generation, streaming for xtts, aggresive VAD
 - voice commands: Google, stop, regenerate, delete, reset, call
 - generation/tts interruption when user is speaking
+- wav2lip streaming
 
 ## I used: 
 - whisper.cpp ggml-medium-q5_0.bin
 - mistral-7b-instruct-v0.2.Q5_0.gguf
 - XTTSv2 server in streaming-mode
 - langchain google-serper
+- wav2lip
 
 ## News
 - [2024.04.14] Source code was broken (conflicting versions, build failed), I synced everything. Builiding should be working now.
