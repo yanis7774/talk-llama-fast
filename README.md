@@ -105,7 +105,7 @@ conda deactivate
 - Edit xtts_wav2lip.bat, change `--output` from c:\\DATA\\LLM\\SillyTavern-Extras\\tts_out\\ to actual path where your \\SillyTavern-Extras\\tts_out\\ dir is located. Don't forget the trailing slashes here.
 - Optional: if you have just 6 or 8 GB of vram - in talk-llama-wav2lip.bat find and change to `-ngl 0`. It will move mistral from GPU to CPU+RAM.
 - Optional: edit talk-llama-wav2lip.bat, change params if needed (params description is below).
-- Install ffmpeg, put into your PATH environment (info: https://phoenixnap.com/kb/ffmpeg-windows). Then download h264 codec .dll of required version from https://github.com/cisco/openh264/releases and put to /system32 or /ffmpeg/bin dir. In my case for Windows 11 it was openh264-1.8.0-win64.dll. Wav2lip will work without this dll but will print an error.
+- Download [ffmpeg full](https://www.gyan.dev/ffmpeg/builds/), put into your PATH environment (how to: https://phoenixnap.com/kb/ffmpeg-windows). Then download h264 codec .dll of required version from https://github.com/cisco/openh264/releases and put to /system32 or /ffmpeg/bin dir. In my case for Windows 11 it was openh264-1.8.0-win64.dll. Wav2lip will work without this dll but will print an error.
 
 
 ## Running
