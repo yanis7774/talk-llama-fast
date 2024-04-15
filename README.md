@@ -111,8 +111,8 @@ conda deactivate
 ## Running
 - In /SillyTavern-extras/ run `silly_extras.bat`. Wait until it downloads wav2lip checkpoint and makes face detection for new video if needed.
 - In /xtts/ dir run `xtts_wav2lip.bat` to start xtts server with wav2lip video. OR run xtts_streaming_audio.bat to start xtts server with audio without video.
-- Run `talk-llama-wav2lip.bat` or `talk-llama-wav2lip-ru.bat` or talk-llama-just-audio.bat. For English: don't run exe, just bat. For Russian: don't run bat, instead open cmd in the folder where bats are located. Then copy all commands from talk-llama-wav2lip-ru.bat and paste into cmd (there is en encoding problem with cyrillic letters in bats). Run.
-- You can make desktop shortcuts to all those .bats for fast access. Start speaking. 
+- Run `talk-llama-wav2lip.bat` or `talk-llama-wav2lip-ru.bat` or talk-llama-just-audio.bat. Don't run exe, just bat. NOTE: if you have cyrillic (Russain) letters in bot name or path: don't run bat, instead open cmd in the folder where bats are located. Then copy all commands from talk-llama-wav2lip-ru.bat and paste into cmd (there is en encoding problem with cyrillic letters in bats). Optional: you can make desktop shortcuts to all those .bats for fast access.
+- Start speaking. 
 
 ### Tweaks for 6 and 8 GB vram
 - use CPU instead of GPU, it will be a bit slower (5-6 s): in talk-llama-wav2lip.bat find and change ngl to `-ngl 0` (mistral has 33 layers, try values from 0 to 33 to find best speed)
