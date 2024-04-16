@@ -129,8 +129,9 @@ conda deactivate
 
 ### Optional
 - Put new xtts voices into `\xtts\speakers\`. I recommend  16 bit mono, 22050Hz 10 seconds long wav without noises and music. Use audacity to edit.
-- Put new videos into `\SillyTavern-extras\modules\wav2lip\input\`. I recommend 300x400 25 fps 1 minute long, don't put high res vids, they use A LOT of vram. One video into one folder. Folder name should be the same as desired xtts voice name and a char name in talk-llama-wav2lip.bat. E.g. Anna.wav and \Anna\youtube_ann_300x400.mp4 for character with the name Anna. With `--multi-chars` param talk-llama will pass name of the new character to xtts even if this character is not defined in bat or start prompt. If xtts won't find that voice it will use default voice. If wav2lip won't find that video it will use default video.
-- Put character descrition and some replies to assistant.txt. Use exact same name for your character and for .wav file and for video folder name. You can also make copies of files (e.g. Kurt Cobain and Kurt).
+- Put new videos into `\SillyTavern-extras\modules\wav2lip\input\`. I recommend 300x400 25 fps 1 minute long, don't put high res vids, they use A LOT of vram. One video into one folder. Folder name should be the same as desired xtts voice name and a char name in talk-llama-wav2lip.bat. E.g. Anna.wav and \Anna\youtube_ann_300x400.mp4 for character with the name Anna. With `--multi-chars` param talk-llama will pass name of the new character to xtts and wav2lip even if this character is not defined in bat or start prompt. If xtts won't find that voice it will use default voice. If wav2lip won't find that video it will use default video.
+- Put character descrition and some replies to assistant.txt. 
+- Use exact same name for your character and for .wav file and for video folder name. You can also make copies of audio/video files (e.g. Kurt Cobain and Kurt). Now you can address him both ways.
 - For better Russian in XTTS check my finetune: https://huggingface.co/Ftfyhh/xttsv2_banana But it is not for streaming (hallucinates at short replies). Use with default xtts in silly tavern.
 
 #### Optional, better coma handling for xtts - only for xtts audio without wav2lip video
