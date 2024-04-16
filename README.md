@@ -88,7 +88,7 @@ pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 --index-url https://downl
 pip install git+https://github.com/Mozer/tts
 conda deactivate
 ```
-- if there are some errors with xtts-api-server installation, check manuals (not mine, they install original xtts, not modified): https://github.com/daswer123/xtts-api-server?tab=readme-ov-file#installation Or another manual (didn't work for me) https://docs.sillytavern.app/extras/extensions/xtts/ I remember that when I first installed xtts-api-server it asked to install some full version of visual-cpp-build-tools. The default download page from MS wasn't working for me, so i had to google and found it elsewhere (maybe it was [VC_redist.x86.exe](https://learn.microsoft.com/ru-ru/cpp/windows/latest-supported-vc-redist?view=msvc-170)). Open a PR if you know which version of visual-cpp-build-tools is working for you.
+- if there are some errors with xtts-api-server installation, check manuals (not my xtts, they install original xtts, not modified): [xtts-api-server](https://github.com/daswer123/xtts-api-server?tab=readme-ov-file#installation) Or another manual (didn't work for me) [from sillytavern](https://docs.sillytavern.app/extras/extensions/xtts/) I remember that when I first installed xtts-api-server it asked to install some full version of [visual-cpp-build-tools](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/). The default download page from MS wasn't working for me, so i had to google and found it elsewher. [Screenshot with options from user]. Or maybe it was [VC_redist.x86.exe](https://learn.microsoft.com/ru-ru/cpp/windows/latest-supported-vc-redist?view=msvc-170).
 
 - In the same dir where you are now, create second conda for extras
 ```
