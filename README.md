@@ -27,6 +27,7 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - wav2lip
 
 ## News
+- [2024.04.17] v0.1.3. Added `--batch-size` (default 64 is good, takes 0.6 GB less VRAM then it was before!), `--verbose` (to show speed). Start prompt is now not limited in length. But keep it < ctx_size for speed.
 - [2024.04.14] Source code was broken (conflicting versions, build failed), I synced everything. Builiding should be working now.
 - [2024.04.06] v0.1.3. Removed --xtts-control-path param. No other changes. To make this version work - please update (pip install) my xtts_api_server, tts, and wav2lip if you have previous versions installed.
 - [2024.04.05] v0.1.2. Now everything is installed into 2 separate condas. Redownload zip, follow instructions below.
@@ -189,6 +190,7 @@ del build\bin\Release\talk-llama.exe & cmake.exe --build build --config release
   -ps,      --print-special  [false  ] print special tokens
   -pe,      --print-energy   [false  ] print sound energy (for debugging)
   -vp,      --verbose-prompt [false  ] print prompt at start
+  --verbose                  [false  ] print speed
   -ng,      --no-gpu         [false  ] disable GPU
   -p NAME,  --person NAME    [Georgi ] person name (for prompt selection)
   -bn NAME, --bot-name NAME  [LLaMA  ] bot name (to display)
@@ -202,7 +204,8 @@ del build\bin\Release\talk-llama.exe & cmake.exe --build build --config release
   --session FNAME                   file to cache model state in (may be large!) (default: none)
   -f FNAME, --file FNAME     [       ] text output file name
    --ctx_size N              [2048   ] Size of the prompt context
-  -n N, --n_predict N        [64     ] Max number of tokens to predict
+  -b N,     --batch-size N   [64     ] Size of input batch size
+  -n N,     --n_predict N    [64     ] Max number of tokens to predict
   --temp N                   [0.90   ] Temperature
   --top_k N                  [40.00  ] top_k
   --top_p N                  [1.00   ] top_p
@@ -210,7 +213,7 @@ del build\bin\Release\talk-llama.exe & cmake.exe --build build --config release
   --repeat_last_n N          [256    ] repeat_last_n
   --xtts-voice NAME          [emma_1 ] xtts voice without .wav
   --xtts-url TEXT            [http://localhost:8020/] xtts/silero server URL, with trailing slash
-  --xtts-control-path FNAME  [       ] not used anymore 
+  --xtts-control-path FNAME  [c:\DATA\LLM\xtts\xtts_play_allowed.txt] not used anymore
   --xtts-intro               [false  ] xtts instant short random intro like Hmmm.
   --sleep-before-xtts        [0      ] sleep llama inference before xtts, ms.
   --google-url TEXT          [http://localhost:8003/] langchain google-serper server URL, with /
