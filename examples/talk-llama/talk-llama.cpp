@@ -98,6 +98,7 @@ struct whisper_params {
     bool print_energy   = false;
     bool no_timestamps  = true;
     bool verbose_prompt = false;
+    bool verbose        = false;
     bool use_gpu        = true;
     bool allow_newline  = false;
     bool multi_chars    = false;
@@ -123,6 +124,7 @@ struct whisper_params {
     std::string path_session = "";       // path to file for saving/loading model eval state
     std::string stop_words = "";
     int32_t ctx_size = 2048;      
+    int32_t batch_size = 64;      
     int32_t n_predict = 64;      
     int32_t min_tokens = 0;      
     float temp = 0.9;      
@@ -157,6 +159,7 @@ bool whisper_params_parse(int argc, const char ** argv, whisper_params & params)
         else if (arg == "-ps"  || arg == "--print-special")  { params.print_special  = true; }
         else if (arg == "-pe"  || arg == "--print-energy")   { params.print_energy   = true; }
         else if (arg == "-vp"  || arg == "--verbose-prompt") { params.verbose_prompt = true; }
+        else if (arg == "--verbose")                         { params.verbose = true; }
         else if (arg == "-ng"  || arg == "--no-gpu")         { params.use_gpu        = false; }
         else if (arg == "-p"   || arg == "--person")         { params.person         = argv[++i]; }
         else if (arg == "-bn"   || arg == "--bot-name")      { params.bot_name       = argv[++i]; }
@@ -168,6 +171,7 @@ bool whisper_params_parse(int argc, const char ** argv, whisper_params & params)
         else if (arg == "-ml"  || arg == "--model-llama")    { params.model_llama    = argv[++i]; }
         else if (arg == "-s"   || arg == "--speak")          { params.speak          = argv[++i]; }
         else if (arg == "--ctx_size")                        { params.ctx_size       = std::stoi(argv[++i]); }
+        else if (arg == "-b"   || arg == "--batch-size")     { params.batch_size     = std::stoi(argv[++i]); }
         else if (arg == "-n"   || arg == "--n_predict")      { params.n_predict      = std::stoi(argv[++i]); }
         else if (arg == "--temp")     						 { params.temp           = std::stof(argv[++i]); }
         else if (arg == "--top_k")     						 { params.top_k          = std::stof(argv[++i]); }
@@ -226,6 +230,7 @@ void whisper_print_usage(int /*argc*/, const char ** argv, const whisper_params 
     fprintf(stderr, "  -ps,      --print-special  [%-7s] print special tokens\n",                        params.print_special ? "true" : "false");
     fprintf(stderr, "  -pe,      --print-energy   [%-7s] print sound energy (for debugging)\n",          params.print_energy ? "true" : "false");
     fprintf(stderr, "  -vp,      --verbose-prompt [%-7s] print prompt at start\n",                       params.verbose_prompt ? "true" : "false");
+    fprintf(stderr, "  --verbose                  [%-7s] print speed\n",                                 params.verbose ? "true" : "false");
     fprintf(stderr, "  -ng,      --no-gpu         [%-7s] disable GPU\n",                                 params.use_gpu ? "false" : "true");
     fprintf(stderr, "  -p NAME,  --person NAME    [%-7s] person name (for prompt selection)\n",          params.person.c_str());
     fprintf(stderr, "  -bn NAME, --bot-name NAME  [%-7s] bot name (to display)\n",                       params.bot_name.c_str());
@@ -239,7 +244,8 @@ void whisper_print_usage(int /*argc*/, const char ** argv, const whisper_params 
     fprintf(stderr, "  --session FNAME                   file to cache model state in (may be large!) (default: none)\n");
     fprintf(stderr, "  -f FNAME, --file FNAME     [%-7s] text output file name\n",                       params.fname_out.c_str());
     fprintf(stderr, "   --ctx_size N              [%-7d] Size of the prompt context\n",                  params.ctx_size);
-    fprintf(stderr, "  -n N, --n_predict N        [%-7d] Max number of tokens to predict\n",             params.n_predict);
+    fprintf(stderr, "  -b N,     --batch-size N   [%-7d] Size of input batch size\n",                    params.batch_size);
+    fprintf(stderr, "  -n N,     --n_predict N    [%-7d] Max number of tokens to predict\n",             params.n_predict);
     fprintf(stderr, "  --temp N                   [%-7.2f] Temperature \n",                              params.temp);
     fprintf(stderr, "  --top_k N                  [%-7.2f] top_k \n",                                    params.top_k);
     fprintf(stderr, "  --top_p N                  [%-7.2f] top_p \n",                                    params.top_p);
@@ -893,6 +899,7 @@ int run(int argc, const char ** argv) {
 	std::string text_to_speak_arr[150];
 	int reply_part_arr[150];
 	bool last_output_has_username = false;	
+	int input_tokens_count = 0;	
 	
     if (whisper_params_parse(argc, argv, params) == false) {
         return 1;
@@ -942,7 +949,7 @@ int run(int argc, const char ** argv) {
     lcparams.n_ctx      = params.ctx_size; // 2048 default
     lcparams.seed       = 1;
     lcparams.n_threads  = params.n_threads;
-    lcparams.n_batch  = 1024; // 512 is too small for init prompt
+    lcparams.n_batch    = params.batch_size; // 512 was default
 
     struct llama_context * ctx_llama = llama_new_context_with_model(model_llama, lcparams);
 
@@ -1068,11 +1075,34 @@ int run(int argc, const char ** argv) {
 
     printf("\n");
     printf("%s : initializing - please wait ...\n", __func__);
+	
+	float llama_start_time = get_current_time_ms();	
+    // OLD
+	//if (llama_eval(ctx_llama, embd_inp.data(), embd_inp.size(), 0)) {
+    //    fprintf(stderr, "%s : if failed to eval, try increasing n_batch or write shorter initial prompt\n", __func__);
+    //    return 1;
+    //}
+	
+	// NEW prompt eval
+	// Calculate the number of chunks needed
+	size_t num_chunks = (embd_inp.size() + lcparams.n_batch - 1) / lcparams.n_batch;
+	// Iterate through the chunks and evaluate them
+	for (size_t i = 0; i < num_chunks; i++) {
+		// Calculate the start and end indices for the current chunk
+		size_t start_idx = i * lcparams.n_batch;
+		size_t end_idx = std::min((i + 1) * lcparams.n_batch, embd_inp.size());
+		// Evaluate the current chunk
+		llama_eval(ctx_llama, embd_inp.data() + start_idx, end_idx - start_idx, 0);
+	}
 
-    if (llama_eval(ctx_llama, embd_inp.data(), embd_inp.size(), 0)) {
-        fprintf(stderr, "%s : if failed to eval, try increasing n_batch or write shorter initial prompt\n", __func__);
-        return 1;
-    }
+	float llama_end_time = get_current_time_ms();
+	float llama_time_total = 0;
+	float llama_time_input = 0;
+	float llama_time_output = 0;
+	
+	llama_time_total = llama_end_time - llama_start_time;
+	printf(" \nLlama start prompt: %d/%d tokens in %.3f s at %.0f t/s\n", embd_inp.size(), params.ctx_size, llama_time_total, embd_inp.size()/llama_time_total);
+
 
     if (params.verbose_prompt) {
         fprintf(stdout, "\n");
@@ -1104,9 +1134,7 @@ int run(int argc, const char ** argv) {
     // if we loaded a session with at least 75% similarity. It's currently just used to speed up the
     // initial prompt so it doesn't need to be an exact match.
     bool need_to_save_session = !path_session.empty() && n_matching_session_tokens < (embd_inp.size() * 3 / 4);
-
-    //printf("params.vad_start_thold: %f\n", params.vad_start_thold);
-    printf("%s : done! start speaking in the microphone\n", __func__);
+    
 
     // show wake command if enabled
     const std::string wake_cmd = params.wake_cmd;
@@ -1182,6 +1210,8 @@ int run(int argc, const char ** argv) {
 	printf("Llama stop words: ");
 	for (const auto &prompt : antiprompts) printf("'%s', ", prompt.c_str());
 
+	printf("\nstart speaking in the microphone\n");
+
 	printf("\n\n");
     printf("%s%s", params.person.c_str(), chat_symb.c_str());
     fflush(stdout);
@@ -1192,8 +1222,11 @@ int run(int argc, const char ** argv) {
 	int len_in_samples = 0;
 	std::string all_heard_pre;
 	int llama_interrupted = 0;
-	float llama_interrupted_time = 0.0;
-	float llama_start_time = 0.0;
+	float llama_interrupted_time = 0.0;	
+	llama_start_time = 0.0;
+	float llama_start_generation_time = 0.0; //  after prompt processing
+	llama_end_time = 0.0;
+	llama_time_total = 0.0;
 	
     // main loop	
     while (is_running) {
@@ -1597,7 +1630,8 @@ int run(int argc, const char ** argv) {
                 fflush(stdout);
 				int split_after = params.split_after;
 				
-                embd = ::llama_tokenize(ctx_llama, text_heard, false);
+                embd = ::llama_tokenize(ctx_llama, text_heard, false); // not sure why 2 times llama_tokenize
+				input_tokens_count = embd.size();
 
                 // Append the new input tokens to the session_tokens vector
                 if (!path_session.empty()) {
@@ -1678,21 +1712,34 @@ int run(int argc, const char ** argv) {
                             session_tokens.insert(session_tokens.end(), embd.begin(), embd.end());
                             n_session_consumed = session_tokens.size();
                         }
-
-                        if (llama_eval(ctx_llama, embd.data(), embd.size(), n_past)) {
-                            fprintf(stderr, "%s : failed to eval\n", __func__);
-                            return 1;
-                        }
+						
+						// OLD
+                        //if (llama_eval(ctx_llama, embd.data(), embd.size(), n_past)) {
+                        //    fprintf(stderr, "%s : failed to eval\n", __func__);
+                        //    return 1;
+                        //}
+						
+						// NEW prompt eval
+						size_t total_size = embd.size();
+						size_t batch_size = lcparams.n_batch;
+						// Split the input embeddings into smaller chunks
+						for (size_t i = 0; i < total_size; i += lcparams.n_batch) {
+							size_t chunk_size = (total_size - i < lcparams.n_batch) ? (total_size - i) : lcparams.n_batch;
+							llama_eval(ctx_llama, embd.data() + i, chunk_size, n_past);
+							n_past += chunk_size;
+						}
                     }	
 					
 
                     embd_inp.insert(embd_inp.end(), embd.begin(), embd.end());
-                    n_past += embd.size();
+                    //n_past += embd.size();
 
                     embd.clear();
                     if (done) break;
 					std::string out_token_str = "";
 					char out_token_symbol;
+					
+					if (!llama_start_generation_time) llama_start_generation_time = get_current_time_ms();
 									
                     {
                         // out of user input, sample next token
@@ -2075,8 +2122,20 @@ int run(int argc, const char ** argv) {
 					audio.clear();
 					//printf("\n [audio cleared fin]\n");
 				}
+				
+				
+				llama_end_time = get_current_time_ms();
+				if (params.verbose) 
+				{
+					llama_time_input = llama_start_generation_time - llama_start_time;
+					llama_time_output = llama_end_time - llama_start_generation_time;
+					llama_time_total = llama_end_time - llama_start_time;
+					printf("\n\n[tokens: %d in + %d out. Input %.3f s + output %.3f s = total: %.3f s]", input_tokens_count , new_tokens, llama_time_input, llama_time_output, llama_time_total);
+					printf("\n[Speed: input %.2f t/s + output %.2f t/s = total: %.2f t/s]\n", input_tokens_count/llama_time_input, new_tokens/llama_time_output, new_tokens/llama_time_total );
+				}
 				llama_interrupted = 0;
 				llama_interrupted_time = 0.0;
+				llama_start_generation_time = 0.0;
             }
         }
     }
