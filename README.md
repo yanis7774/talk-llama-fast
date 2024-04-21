@@ -27,7 +27,7 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - wav2lip
 
 ## News
-- [2024.04.17] v0.1.3. Added `--batch-size` (takes 0.6 GB less VRAM then it was before!), `--verbose` (to show speed). Start prompt is now not limited in length. But keep it < ctx_size for speed.
+- [2024.04.17] v0.1.4. Added `--batch-size` (takes 0.6 GB less VRAM then it was before!), `--verbose` (to show speed). Start prompt is now not limited in length. But keep it < ctx_size for speed.
 - [2024.04.14] Source code was broken (conflicting versions, build failed), I synced everything. Builiding should be working now.
 - [2024.04.06] v0.1.3. Removed --xtts-control-path param. No other changes. To make this version work - please update (pip install) my xtts_api_server, tts, and wav2lip if you have previous versions installed.
 - [2024.04.05] v0.1.2. Now everything is installed into 2 separate condas. Redownload zip, follow instructions below.
@@ -72,7 +72,7 @@ Mistral officially supports: English, French, Italian, German, Spanish. But it c
 - Check that you have Cuda Toolkit 11.x. If not - install: https://developer.nvidia.com/cuda-11-8-0-download-archive
 - Download latest [release](https://github.com/Mozer/talk-llama-fast/releases) in zip. Extract it's contents.
 - Download whisper model to folder with talk-llama.exe: [for English](https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-medium.en-q5_0.bin) or [for Russian](https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-medium-q5_0.bin) (or even ggml-large-v3-q5_0.bin it is larger but better). You can try small-q5 if you don't have much VRAM. For English try [distilled medium](https://huggingface.co/distil-whisper/distil-medium.en/blob/main/ggml-medium-32-2.en.bin), it takes 100 MB less VRAM.
-- Download LLM to same folder [mistral-7b-instruct-v0.2.Q5_0](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/blob/main/mistral-7b-instruct-v0.2.Q5_0.gguf), you can try q4_K_S or q3 if you don't have much VRAM.
+- Download LLM to same folder [mistral-7b-instruct-v0.2.Q5_0](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/blob/main/mistral-7b-instruct-v0.2.Q5_0.gguf) or [Vikhr-7B for Russian](https://huggingface.co/pirbis/Vikhr-7B-instruct_0.2-GGUF/blob/main/vikhr-7b-instruct_0.2.Q5_0.gguf). You can try q4_K_S or q3 if you don't have much VRAM.
 - Now let's install my modified sillyTavern-extras, wav2lip, xtts-api-server, tts (all from my github). Note: xtts-api-server conflicts with SillyTavern-Extras (xtts deepspeed needs torch 2.1 but some package in extras (torchvision 0.17.2) needs torch 2.2). Before that i was able to run them both in 3.11, but users reported several problems trying to install xtts-api-server together with SillyTavern-Extras without conda. So now we will install everything with 2 different conda environments with different torches (7 GB for each conda, i know it is big). It has 2 parts: for xtts and for SillyTavern-Extras. If you know how to install everything in 1 conda environment step by step - open a PR.
 
 install [miniconda](https://docs.anaconda.com/free/miniconda/). During installation make sure to check "Add Miniconda3 to my PATH environment variable" - it's important.
@@ -111,7 +111,7 @@ conda deactivate
 - Notice: that \wav2lip\ was installed inside \SillyTavern-extras\modules\ folder. That's important.
 - Edit xtts_wav2lip.bat, change `--output` from c:\\DATA\\LLM\\SillyTavern-Extras\\tts_out\\ to actual path where your \\SillyTavern-Extras\\tts_out\\ dir is located. Don't forget the trailing slashes here.
 - Optional: if you have just 6 or 8 GB of vram - in talk-llama-wav2lip.bat find and change to `-ngl 0`. It will move mistral from GPU to CPU+RAM.
-- Optional: edit talk-llama-wav2lip.bat, change params if needed (params description is below).
+- Optional: edit talk-llama-wav2lip.bat or talk-llama-wav2lip-ru.bat, make sure it has correct LLM and whisper model names that you downloaded. (Full params description is below).
 - Download [ffmpeg full](https://www.gyan.dev/ffmpeg/builds/), put into your PATH environment (how to: https://phoenixnap.com/kb/ffmpeg-windows). Then download h264 codec .dll of required version from https://github.com/cisco/openh264/releases and put to /system32 or /ffmpeg/bin dir. In my case for Windows 11 it was openh264-1.8.0-win64.dll. Wav2lip will work without this dll but will print an error.
 
 
