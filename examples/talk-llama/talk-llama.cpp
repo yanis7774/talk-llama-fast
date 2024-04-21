@@ -1199,18 +1199,23 @@ int run(int argc, const char ** argv) {
 		{
 			while (startIndex < params.stop_words.size()) // multiple stop-words
 			{
-			   std::string word = params.stop_words.substr(startIndex, endIndex - startIndex);
-			   if (word.size()) antiprompts.push_back(word);
-			   startIndex = endIndex + 1;
-			   endIndex = params.stop_words.find(';', startIndex);
-			   if (endIndex == std::string::npos) endIndex = params.stop_words.size();
-			}
+				std::string word = params.stop_words.substr(startIndex, endIndex - startIndex);
+				if (word.size())
+				{
+					word = ::replace(word, "\\r", "\r");
+					word = ::replace(word, "\\n", "\n");
+					antiprompts.push_back(word);
+				}
+				startIndex = endIndex + 1;
+				endIndex = params.stop_words.find(';', startIndex);
+				if (endIndex == std::string::npos) endIndex = params.stop_words.size();
+			}	
 		}
 	}
 	printf("Llama stop words: ");
 	for (const auto &prompt : antiprompts) printf("'%s', ", prompt.c_str());
 
-	printf("\nstart speaking in the microphone\n");
+	printf("\nstart speaking into the microphone\n");
 
 	printf("\n\n");
     printf("%s%s", params.person.c_str(), chat_symb.c_str());
@@ -1354,10 +1359,13 @@ int run(int argc, const char ** argv) {
 				text_heard = RemoveTrailingCharactersUtf8(text_heard, U",");
 				text_heard = RemoveTrailingCharactersUtf8(text_heard, U".");
 				text_heard = RemoveTrailingCharactersUtf8(text_heard, U"»");
+				text_heard = RemoveTrailingCharactersUtf8(text_heard, U"[");
+				text_heard = RemoveTrailingCharactersUtf8(text_heard, U"]");
 				if (text_heard[0] == '.') text_heard.erase(0, 1);
 				if (text_heard[0] == '!') text_heard.erase(0, 1);
+				if (text_heard[0] == '[') text_heard.erase(0, 1);
 				trim(text_heard);
-				if (text_heard == "!" || text_heard == "." || text_heard == "Sil" || text_heard == "Bye" || text_heard == "Okay" || text_heard == "Okay." || text_heard == "Thank you." || text_heard == "Thank you" || text_heard == "Thanks." || text_heard == "Bye." || text_heard == "Thank you for listening." || text_heard == "К" || text_heard == "Спасибо" || text_heard == "Пока" || text_heard == params.bot_name || text_heard == "*Звук!*" || text_heard == "Р" || text_heard.find("Редактор субтитров")!= std::string::npos || text_heard.find("можешь это сделать")!= std::string::npos || text_heard.find("Как дела?")!= std::string::npos || text_heard.find("Это")!= std::string::npos || text_heard.find("Добро пожаловать")!= std::string::npos || text_heard.find("Спасибо за внимание")!= std::string::npos || text_heard.find("Будьте здоровы")!= std::string::npos || text_heard.find("Продолжение следует")!= std::string::npos || text_heard.find("End of")!= std::string::npos || text_heard.find("The End")!= std::string::npos || text_heard.find("THE END")!= std::string::npos || text_heard.find("The film was made")!= std::string::npos || text_heard.find("Translated by")!= std::string::npos || text_heard.find("Thanks for watching")!= std::string::npos || text_heard.find("The second part of the video")!= std::string::npos || text_heard.find("Thank you for watching")!= std::string::npos || text_heard.find("*click*")!= std::string::npos || text_heard.find("Субтитры")!= std::string::npos || text_heard.find("До свидания")!= std::string::npos || text_heard.find("До новых встреч")!= std::string::npos || text_heard.find("ПЕСНЯ")!= std::string::npos || text_heard.find("Silence")!= std::string::npos || text_heard.find("Поехали")!= std::string::npos || text_heard == "You're" || text_heard == "you're" || text_heard == "You're not" || text_heard == "See?" || text_heard == "you" || text_heard == "You" || text_heard == "Yeah" || text_heard == "Well" || text_heard == "Hey" || text_heard == "Oh" || text_heard == "Right" || text_heard == "Real" || text_heard == "Huh" || text_heard == "I" || text_heard == "I'm" || text_heard.find("*звук!")!= std::string::npos) text_heard = "";
+				if (text_heard == "!" || text_heard == "." || text_heard == "Sil" || text_heard == "Bye" || text_heard == "Okay" || text_heard == "Okay." || text_heard == "Thank you." || text_heard == "Thank you" || text_heard == "Thanks." || text_heard == "Bye." || text_heard == "Thank you for listening." || text_heard == "К" || text_heard == "Спасибо" || text_heard == "Пока" || text_heard == params.bot_name || text_heard == "*Звук!*" || text_heard == "Р" || text_heard.find("Редактор субтитров")!= std::string::npos || text_heard.find("можешь это сделать")!= std::string::npos || text_heard.find("Как дела?")!= std::string::npos || text_heard.find("Это")!= std::string::npos || text_heard.find("Добро пожаловать")!= std::string::npos || text_heard.find("Спасибо за внимание")!= std::string::npos || text_heard.find("Будьте здоровы")!= std::string::npos || text_heard.find("Продолжение следует")!= std::string::npos || text_heard.find("End of")!= std::string::npos || text_heard.find("The End")!= std::string::npos || text_heard.find("THE END")!= std::string::npos || text_heard.find("The film was made")!= std::string::npos || text_heard.find("Translated by")!= std::string::npos || text_heard.find("Thanks for watching")!= std::string::npos || text_heard.find("The second part of the video")!= std::string::npos || text_heard.find("Thank you for watching")!= std::string::npos || text_heard.find("*click*")!= std::string::npos || text_heard.find("Субтитры")!= std::string::npos || text_heard.find("До свидания")!= std::string::npos || text_heard.find("До новых встреч")!= std::string::npos || text_heard.find("ПЕСНЯ")!= std::string::npos || text_heard.find("Silence")!= std::string::npos || text_heard.find("Поехали")!= std::string::npos || text_heard == "You're" || text_heard == "you're" || text_heard == "You're not" || text_heard == "See?" || text_heard == "you" || text_heard == "You" || text_heard == "Yeah" || text_heard == "Well" || text_heard == "Hey" || text_heard == "Oh" || text_heard == "Right" || text_heard == "Real" || text_heard == "Huh" || text_heard == "I" || text_heard == "I'm" || text_heard.find("*звук!")!= std::string::npos || text_heard == "В" || text_heard == "а" || text_heard == "*") text_heard = "";
 				text_heard = std::regex_replace(text_heard, std::regex("\\s+$"), ""); // trailing whitespace
 
 				
@@ -1802,7 +1810,7 @@ int run(int argc, const char ** argv) {
                             embd.push_back(id);
 							out_token_str = llama_token_to_piece(ctx_llama, id);
                             text_to_speak += out_token_str;
-                            //printf("[%d: %s] ", new_tokens, out_token_str.c_str());
+                            //printf("[%s]", out_token_str.c_str());
                             printf("%s", out_token_str.c_str());
 							tokens_in_reply++;
 							
