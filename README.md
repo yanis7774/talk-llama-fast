@@ -247,6 +247,16 @@ Full list of commands and variations is in `talk-llama.cpp`, search `user_comman
 - Sometimes wav2lip video window disappears but audio is still playing fine. If the video window doesn't come back automatically - restart Silly Tavern Extras.
 - if you restart xtts you need to restart silly-tavern-extras. Otherwise wav2lip will start playing wrong segments of already created videos.
 
+## Licenses
+- talk-llama-fast - MIT License - OK for commercial use
+- whisper.cpp - MIT License - OK for commercial use
+- whisper - MIT License - OK for commercial use
+- TTS(xtts) - Mozilla Public License 2.0 - OK for commercial use
+- xtts-api-server - MIT License - OK for commercial use
+- Silly Extras - GNU Public License v3.0 - OK for commercial use
+- Mistral 7B - Apache 2.0 license - OK for commercial use
+- Wav2Lip - non-commercial - for commercial requests, please contact synclabs.so directly
+
 ## Contacts
 Reddit: https://www.reddit.com/user/tensorbanana2
 
