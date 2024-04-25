@@ -24,6 +24,8 @@
 #include <cctype>
 #include <locale>
 #include <codecvt>
+//#include <mutex>
+#include <queue>
 
 // for xtts_play_allowed.txt
 #include <Windows.h> // for win. 
@@ -46,6 +48,9 @@
 #include <iterator>
 #include <ctime>
 
+
+// global
+std::string g_hotkey_pressed = "";
 
 std::vector<llama_token> llama_tokenize(struct llama_context * ctx, const std::string & text, bool add_bos) {
     auto * model = llama_get_model(ctx);
@@ -870,6 +875,131 @@ void send_tts_async(std::string text, std::string speaker_wav="emma_1", std::str
 	}
 }
 
+std::queue<std::string> input_queue; // global
+//std::mutex input_mutex;
+bool keyboard_input_running = true; // global, not used yet
+
+void input_thread_func() {
+    std::string line;
+    std::string buffer;
+	bool found_another_line = true;
+	
+    while (keyboard_input_running) {
+		do {
+			found_another_line = console::readline(line, false);
+			buffer += line;
+		} while (found_another_line);
+		//printf(" '%s' ", buffer.c_str());
+		trim(buffer); // keyboard input
+		// if you paste multiple passages from clipboard, make sure to hit Enter after pasting
+		// otherwise last passage won't be pasted (bug). Alternatively you can manually add \n after last passage in copied text
+        
+		//std::lock_guard<std::mutex> lock(input_mutex); // was blocking, TODO if really needed
+		input_queue.push(buffer);
+		buffer = "";
+    }
+}
+
+// windows only
+bool IsConsoleWindowFocused(HWND cur_window_handle) {
+    return (cur_window_handle == GetForegroundWindow());
+}
+
+// Stop: Ctrl+Space
+// Regenerate: Ctrl+Right
+// Delete: Ctrl+Delete
+// Reset: Ctrl+R
+// modifies global var g_hotkey_pressed 
+void keyboard_shortcut_func(HWND cur_window_handle) {
+    bool b_ctr_space_processed = false;
+    bool b_ctr_right_processed = false;
+    bool b_ctr_delete_processed = false;
+    bool b_ctr_r_processed = false;
+    bool b_ctr_space_prev = false;
+    bool b_ctr_right_prev = false;
+    bool b_ctr_delete_prev = false;
+    bool b_ctr_r_prev = false;
+    bool b_ctr_space = false;
+    bool b_ctr_right = false;
+    bool b_ctr_delete = false;
+    bool b_ctr_r = false;
+    bool isFocused = false;
+	g_hotkey_pressed = "";
+
+    while (true) {
+        isFocused = IsConsoleWindowFocused(cur_window_handle);
+        if (isFocused) {
+            b_ctr_space = GetAsyncKeyState(VK_CONTROL) & GetAsyncKeyState(VK_SPACE) & 0x8000;
+            b_ctr_right = GetAsyncKeyState(VK_CONTROL) & GetAsyncKeyState(VK_RIGHT) & 0x8000;
+            b_ctr_delete = GetAsyncKeyState(VK_CONTROL) & GetAsyncKeyState(VK_DELETE) & 0x8000;
+            b_ctr_r = GetAsyncKeyState(VK_CONTROL) & GetAsyncKeyState('R') & 0x8000;
+
+            if (b_ctr_space && !b_ctr_space_prev) {
+                if (!b_ctr_space_processed) {
+                    fflush(stdout);
+					printf("\b"); // remove printed symbols
+					fflush(stdout);
+					//std::cout << "Ctrl+Space pressed\n" << std::endl;
+					g_hotkey_pressed = "Ctrl+Space";
+                    b_ctr_space_processed = true;
+                }
+            }
+            else if (!b_ctr_space && b_ctr_space_prev && b_ctr_space_processed) {
+                b_ctr_space_processed = false;
+            }
+
+            if (b_ctr_right && !b_ctr_right_prev) {
+                if (!b_ctr_right_processed) {
+					fflush(stdout);
+					printf("\b"); // remove printed symbols
+					fflush(stdout);					
+                    //std::cout << "Ctrl+Right pressed\n" << std::endl;
+					g_hotkey_pressed = "Ctrl+Right";
+                    b_ctr_right_processed = true;
+                }
+            }
+            else if (!b_ctr_right && b_ctr_right_prev && b_ctr_right_processed) {
+                b_ctr_right_processed = false;
+            }
+
+            if (b_ctr_delete && !b_ctr_delete_prev) {
+                if (!b_ctr_delete_processed) {
+                    //std::cout << "Ctrl+Delete pressed\n" << std::endl;
+					fflush(stdout);
+					printf("\b"); // remove printed symbols
+					fflush(stdout);	
+					g_hotkey_pressed = "Ctrl+Delete";
+                    b_ctr_delete_processed = true;
+                }
+            }
+            else if (!b_ctr_delete && b_ctr_delete_prev && b_ctr_delete_processed) {
+                b_ctr_delete_processed = false;
+            }
+
+            if (b_ctr_r && !b_ctr_r_prev) {
+                if (!b_ctr_r_processed) {
+					fflush(stdout);
+					printf("\b\b"); // remove printed ^R
+					fflush(stdout);
+                    //std::cout << "Ctrl+R pressed\n" << std::endl;
+					g_hotkey_pressed = "Ctrl+R";
+                    b_ctr_r_processed = true;
+                }
+            }
+            else if (!b_ctr_r && b_ctr_r_prev && b_ctr_r_processed) {
+                b_ctr_r_processed = false;
+            }
+
+            b_ctr_space_prev = b_ctr_space;
+            b_ctr_right_prev = b_ctr_right;
+            b_ctr_delete_prev = b_ctr_delete;
+            b_ctr_r_prev = b_ctr_r;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+
 const std::string k_prompt_whisper = R"(A conversation with a person called {1}.)";
 const std::string k_prompt_whisper_ru = R"({1}, Алиса.)";
 
@@ -889,6 +1019,14 @@ The transcript only includes text, it does not include markup like HTML and Mark
 {1}{4} Blue
 {0}{4})";
 
+
+
+
+
+
+
+
+
 int run(int argc, const char ** argv) {
 	
 	whisper_params params;
@@ -900,6 +1038,8 @@ int run(int argc, const char ** argv) {
 	int reply_part_arr[150];
 	bool last_output_has_username = false;	
 	int input_tokens_count = 0;	
+	
+	HWND cur_window_handle = GetForegroundWindow(); // i hope you run a window that has focus
 	
     if (whisper_params_parse(argc, argv, params) == false) {
         return 1;
@@ -1077,11 +1217,6 @@ int run(int argc, const char ** argv) {
     printf("%s : initializing - please wait ...\n", __func__);
 	
 	float llama_start_time = get_current_time_ms();	
-    // OLD
-	//if (llama_eval(ctx_llama, embd_inp.data(), embd_inp.size(), 0)) {
-    //    fprintf(stderr, "%s : if failed to eval, try increasing n_batch or write shorter initial prompt\n", __func__);
-    //    return 1;
-    //}
 	
 	// NEW prompt eval
 	// Calculate the number of chunks needed
@@ -1182,7 +1317,8 @@ int run(int argc, const char ** argv) {
 	
     // reverse prompts for detecting when it's time to stop speaking
     std::vector<std::string> antiprompts = {
-        params.person + chat_symb
+        params.person + chat_symb,
+        params.person + " "+chat_symb,
     };
 	if (!params.allow_newline) antiprompts.push_back("\n");
 	
@@ -1215,10 +1351,15 @@ int run(int argc, const char ** argv) {
 	printf("Llama stop words: ");
 	for (const auto &prompt : antiprompts) printf("'%s', ", prompt.c_str());
 
-	printf("\nstart speaking into the microphone\n");
+	std::thread input_thread(input_thread_func);
+	std::thread shortcut_thread([cur_window_handle]() {
+        keyboard_shortcut_func(cur_window_handle);
+    });
+	printf("\nVoice commands: Stop(Ctrl+Space), Regenerate(Ctrl+Right), Delete(Ctrl+Delete), Reset(Ctrl+R)\n");
+	printf("Start speaking or typing:\n");
 
 	printf("\n\n");
-    printf("%s%s", params.person.c_str(), chat_symb.c_str());
+    printf("%s%s ", params.person.c_str(), chat_symb.c_str());
     fflush(stdout);
 	int vad_result_prev = 2; // ended
 	float speech_start_ms = 0;
@@ -1232,6 +1373,8 @@ int run(int argc, const char ** argv) {
 	float llama_start_generation_time = 0.0; //  after prompt processing
 	llama_end_time = 0.0;
 	llama_time_total = 0.0;
+	std::string user_typed = "";
+	bool user_typed_this = false;
 	
     // main loop	
     while (is_running) {
@@ -1243,10 +1386,42 @@ int run(int argc, const char ** argv) {
         }
 
         // delay. try lower?
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         int64_t t_ms = 0;
+		
+		// keyboard input
+		user_typed_this = false;
+		console::set_display(console::reset);
+		//std::lock_guard<std::mutex> lock(input_mutex); // was blocking, TODO if it is really needed
+		if (!input_queue.empty()) {
+			std::string buffer;
+			while (!input_queue.empty()) {
+				buffer += input_queue.front() + "\n";
+				input_queue.pop();
+			}
+			user_typed = buffer;
+			trim(user_typed);			
+			user_typed_this = true;
+		}
+		
+		// hotkeys
+		if (g_hotkey_pressed.size())
+		{
+			user_typed_this = true; // maybe another state?
+			if (g_hotkey_pressed == "Ctrl+Space") {
+				user_typed = "Stop";
+			} else if (g_hotkey_pressed == "Ctrl+Right") {
+				user_typed = "Regenerate";
+			} else if (g_hotkey_pressed == "Ctrl+Delete") {
+				user_typed = "Delete";
+			} else if (g_hotkey_pressed == "Ctrl+R") {
+				user_typed = "Reset";
+			}
+			g_hotkey_pressed = "";
+		}
 
+		// audio
         {
             audio.get(2000, pcmf32_cur); // step_ms, async			
 			
@@ -1270,7 +1445,7 @@ int run(int argc, const char ** argv) {
 				// user has started speaking, xtts cannot play
 				allow_xtts_file(params.xtts_control_path, 0);
 			}		
-            if (vad_result >= 2 && vad_result_prev == 1 || force_speak)  // speech ended
+            if (vad_result >= 2 && vad_result_prev == 1 || force_speak || user_typed.size())  // speech ended or user typed
 			{
 				speech_end_ms = get_current_time_ms(); // float in seconds.ms
 				speech_len = speech_end_ms - speech_start_ms;
@@ -1287,7 +1462,7 @@ int run(int argc, const char ** argv) {
 				vad_result_prev = 2;
 				speech_start_ms = 0;
 				
-				if (!speech_len) continue;
+				if (!speech_len && !user_typed.size()) continue;
 				
 				speech_len = speech_len + 0.3; // front padding
 				if (speech_len < 1.10) speech_len = 1.10; // whisper doesn't like sentences < 1.10s
@@ -1296,7 +1471,12 @@ int run(int argc, const char ** argv) {
                 std::string all_heard;
 				// get transcribe from whisper
                 //printf("%.3f after vad-end (%d)\n", get_current_time_ms(), pcmf32_cur.size());
-				if (!force_speak) {
+				if (user_typed.size())
+				{
+					all_heard = user_typed;
+					user_typed = "";
+				}
+				else if (!force_speak) {
                     all_heard = ::trim(::transcribe(ctx_wsp, params, pcmf32_cur, prompt_whisper, prob0, t_ms));
                 }
 				//printf("%.3f after real whisper\n", get_current_time_ms());
@@ -1313,8 +1493,7 @@ int run(int argc, const char ** argv) {
                         text_heard += words[i] + " ";
                     }
                 }				
-				if (params.print_energy) fprintf(stdout, " [text_heard: (%s)]\n", text_heard.c_str());
-				
+				if (params.print_energy) fprintf(stdout, " [text_heard: (%s)]\n", text_heard.c_str());				
 				
                 // check if audio starts with the wake-up command if enabled
                 if (use_wake_cmd) {
@@ -1333,7 +1512,7 @@ int run(int argc, const char ** argv) {
                         fprintf(stderr, "%s: failed to speak\n", __func__);
                     }
                 }
-				
+				//printf(" [PRE text_heard: (%s)]\n", text_heard.c_str());
                 // remove text between brackets using regex
                 {
                     std::regex re("\\[.*?\\]");
@@ -1346,7 +1525,7 @@ int run(int argc, const char ** argv) {
                     text_heard = std::regex_replace(text_heard, re, "");
                 }
                 // remove all characters, except for letters, numbers, punctuation and ':', '\'', '-', ' '
-                if (params.language == "en") text_heard = std::regex_replace(text_heard, std::regex("[^a-zA-Z0-9\\.,\\?!\\s\\:\\'\\-]"), ""); // breaks non latin text, e.g. Russian
+                if (params.language == "en" && !user_typed_this) text_heard = std::regex_replace(text_heard, std::regex("[^a-zA-Z0-9\\.,\\?!\\s\\:\\'\\-]"), ""); // breaks non latin text, e.g. Russian
                 // take first line
                 text_heard = text_heard.substr(0, text_heard.find_first_of('\n'));
 
@@ -1371,7 +1550,7 @@ int run(int argc, const char ** argv) {
 				
 				//printf("Number of tokens in embd: %zu\n", embd.size());
 				//printf("n_past_prev: %d\n", n_past_prev);
-				//printf("text_heard_prev: %s\n", text_heard_prev);
+				//printf("text_heard_prev: %s\n", text_heard_prev);				
 				
 				text_heard_trimmed = text_heard; // no periods or spaces
 				trim(text_heard_trimmed);
@@ -1447,7 +1626,7 @@ int run(int argc, const char ** argv) {
 							if (rollback_num)
 							{						
 								embd_inp.erase(embd_inp.end() - rollback_num, embd_inp.end());
-								printf(" regenerating %d tokens. Tokens in ctx: %d\n", rollback_num, embd_inp.size());
+								printf(" [regenerating %d tokens. Context: %d]\n", rollback_num, embd_inp.size());
 								n_past -= rollback_num;
 								text_heard = text_heard_prev;
 								text_heard_trimmed = "";								
@@ -1525,15 +1704,30 @@ int run(int argc, const char ** argv) {
 					{
 						if (!past_prev_arr.empty())
 						{
-							// delete everything to start prompt
+							// delete everything except start prompt
 							n_past_prev = past_prev_arr.front();
 							past_prev_arr.clear();
 							int rollback_num = embd_inp.size()-n_past_prev;
 							if (rollback_num)
 							{
-								printf(" Reset. deleting %d tokens\n", rollback_num);						
-								embd_inp.erase(embd_inp.end() - rollback_num, embd_inp.end());						
-								n_past -= rollback_num;
+								printf(" [Resetting context of %d tokens.]\n", embd_inp.size());						
+								embd_inp = ::llama_tokenize(ctx_llama, prompt_llama, true);
+								n_past = embd_inp.size();
+								// NEW prompt eval
+								// Calculate the number of chunks needed
+								size_t num_chunks = (embd_inp.size() + lcparams.n_batch - 1) / lcparams.n_batch;
+								// Iterate through the chunks and evaluate them
+								for (size_t i = 0; i < num_chunks; i++) {
+									// Calculate the start and end indices for the current chunk
+									size_t start_idx = i * lcparams.n_batch;
+									size_t end_idx = std::min((i + 1) * lcparams.n_batch, embd_inp.size());
+									// Evaluate the current chunk
+									llama_eval(ctx_llama, embd_inp.data() + start_idx, end_idx - start_idx, 0);
+								}
+								printf(" [Context is now %d/%d tokens]\n", embd_inp.size(), params.ctx_size);		
+								
+								//embd_inp.erase(embd_inp.end() - rollback_num, embd_inp.end());						
+								//n_past -= rollback_num;
 								text_heard = "";
 								text_heard_trimmed = "";
 								send_tts_async("Reset whole context", params.xtts_voice, params.language, params.xtts_url);
@@ -1542,7 +1736,7 @@ int run(int argc, const char ** argv) {
 						}
 						else 
 						{
-							printf("Nothing to reset more\n");							
+							printf(" [Nothing to reset more]\n");							
 							send_tts_async("Nothing to reset more", params.xtts_voice, params.language, params.xtts_url);
 						}
 					}
@@ -1552,11 +1746,13 @@ int run(int argc, const char ** argv) {
 				// STOP
 				else if (user_command == "stop") 
 				{
-					printf(" Stopped!\n");					
+					printf(" [Stopped!]\n");					
 					text_heard = "";
 					text_heard_trimmed = "";
 					audio.clear();
 					allow_xtts_file(params.xtts_control_path, 0);
+					user_typed = "";
+					user_typed_this = false;
 					continue;
 				}
 				// GOOGLE
@@ -1631,10 +1827,12 @@ int run(int argc, const char ** argv) {
 				if (params.translate) bot_name_current_ru = translit_en_ru(params.bot_name);
 				int n_comas = 0; // comas counter
 				//printf("text_heard_prev: %s\n", text_heard_prev);
-                if (last_output_has_username) text_heard.insert(0, 1, ' ');
+                if (last_output_has_username && !user_typed_this) text_heard.insert(0, 1, ' ');
                 else text_heard.insert(0, "\n"+params.person + chat_symb + " ");
                 text_heard += "\n" + params.bot_name + chat_symb;
-                fprintf(stdout, "%s%s%s", "\033[1m", text_heard.c_str(), "\033[0m");				
+                
+				if (user_typed_this) fprintf(stdout, "%s%s%s", "\033[1m", params.bot_name + chat_symb, "\033[0m");
+				else fprintf(stdout, "%s%s%s", "\033[1m", text_heard.c_str(), "\033[0m");				
                 fflush(stdout);
 				int split_after = params.split_after;
 				
@@ -1874,19 +2072,22 @@ int run(int argc, const char ** argv) {
 							if (new_tokens == split_after && params.split_after && text_to_speak[text_len-1] == '\'') split_after++;
 							if (text_to_speak.size() >= 3 && text_to_speak.substr(text_to_speak.size()-3, 3) == "Mr.") text_to_speak[text_len-1] = ' '; // no splitting on mr.
 							
-							// STOP on speech for llama, every 2 tokens
+							// STOP on speech or hotkey for llama, every 2 tokens
 							if (new_tokens % 2 == 0)
 							{
+								
+									
 								// check energy level, if user is speaking (it doesn't call whisper recognition, just a loud noise will stop everything)
 								audio.get(2000, pcmf32_cur); // non-blocking, 2000 step_ms
 								int vad_result = ::vad_simple_int(pcmf32_cur, WHISPER_SAMPLE_RATE, params.vad_last_ms, params.vad_thold, params.freq_thold, params.print_energy, params.vad_start_thold);
-								if (vad_result == 1) // speech started
+								if (vad_result == 1 || g_hotkey_pressed == "Ctrl+Space") // speech started
 								{
 									llama_interrupted = 1;
 									llama_interrupted_time = get_current_time_ms();
-									printf(" [Speech!]\n");
+									printf(" [Speech/Stop!]\n");
 									allow_xtts_file(params.xtts_control_path, 0); // xtts stop
 									done = true; // llama generation stop
+									g_hotkey_pressed = "";
 									break;
 								}
 							}
@@ -2055,6 +2256,7 @@ int run(int argc, const char ** argv) {
 								if (i_antiprompt == 0) 
 								{
 									last_output_has_username = true;
+									printf(" "); // for typed input
 								}
 								//printf(" antiprompt: (%s), t:%d\n", antiprompt.c_str(), tokens_in_reply);
 								
@@ -2155,6 +2357,9 @@ int run(int argc, const char ** argv) {
 
     llama_print_timings(ctx_llama);
     llama_free(ctx_llama);
+	
+	input_thread.join();    // kb input
+	shortcut_thread.join(); // shortcuts
 
     return 0;
 }
