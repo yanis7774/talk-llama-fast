@@ -27,6 +27,7 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - wav2lip
 
 ## News
+- [2024.04.25] v0.1.5. Added keyboard input, hotkeys, fixed a bug with 'Reset' context command.
 - [2024.04.17] v0.1.4. Added `--batch-size` (takes 0.6 GB less VRAM then it was before!), `--verbose` (to show speed). Start prompt is now not limited in length. But keep it < ctx_size for speed.
 - [2024.04.14] Source code was broken (conflicting versions, build failed), I synced everything. Builiding should be working now.
 - [2024.04.06] v0.1.3. Removed --xtts-control-path param. No other changes. To make this version work - please update (pip install) my xtts_api_server, tts, and wav2lip if you have previous versions installed.
@@ -89,7 +90,8 @@ pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 --index-url https://downl
 pip install git+https://github.com/Mozer/tts
 conda deactivate
 ```
-- if there are some errors with xtts-api-server installation, check manuals (not my xtts, they install original xtts, not modified): [xtts-api-server](https://github.com/daswer123/xtts-api-server?tab=readme-ov-file#installation) or another manual (didn't work for me) [from sillytavern](https://docs.sillytavern.app/extras/extensions/xtts/) I remember that when I first installed xtts-api-server it asked to install some full version of [visual-cpp-build-tools](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/). The default download page from MS wasn't working for me, so i had to google and found it elsewher. [VS_BuildTools.exe screenshot 1](https://github.com/Mozer/talk-llama-fast/assets/1599013/23627998-28f7-4eeb-9bc5-be54c1a68217), [screenshot 2](https://github.com/Mozer/talk-llama-fast/assets/1599013/b7ff8401-c5b3-4f5c-abdb-e527f296b12d). Or maybe it was [VC_redist.x86.exe](https://learn.microsoft.com/ru-ru/cpp/windows/latest-supported-vc-redist?view=msvc-170).
+- if there are some errors with xtts-api-server installation, check manuals (not my xtts, they install original xtts, not modified): [xtts-api-server](https://github.com/daswer123/xtts-api-server?tab=readme-ov-file#installation) or another manual (didn't work for me) [from sillytavern](https://docs.sillytavern.app/extras/extensions/xtts/) or this [stackoverflow TTS install manual](https://stackoverflow.com/questions/66726331/how-can-i-run-mozilla-tts-coqui-tts-training-with-cuda-on-a-windows-system), but it uses some different versions.
+I remember that when I first installed xtts-api-server it asked to install some full version of [visual-cpp-build-tools](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/). The default download page from MS wasn't working for me, so i had to google and found it elsewher. [VS_BuildTools.exe screenshot 1](https://github.com/Mozer/talk-llama-fast/assets/1599013/23627998-28f7-4eeb-9bc5-be54c1a68217), [screenshot 2](https://github.com/Mozer/talk-llama-fast/assets/1599013/b7ff8401-c5b3-4f5c-abdb-e527f296b12d). Or maybe it was [VC_redist.x86.exe](https://learn.microsoft.com/ru-ru/cpp/windows/latest-supported-vc-redist?view=msvc-170).
 
 - In the same dir where you are now, create second conda for extras
 ```
@@ -227,19 +229,17 @@ del build\bin\Release\talk-llama.exe & cmake.exe --build build --config release
 
 ## Voice commands:
 Full list of commands and variations is in `talk-llama.cpp`, search `user_command`.
-- Stop (остановись)
-- Regenerate (переделай) - will regenerate llama answer
-- Delete (удали) - will delete user question and llama answer.
+- Stop (остановись, Ctrl+Space)
+- Regenerate (переделай, , Ctrl+Right) - will regenerate llama answer
+- Delete (удали, Ctrl+Delete) - will delete user question and llama answer.
 - Delete 3 messages (удали 3 сообщениия)
-- Reset (удали все) - will delete all context except for a initial prompt
+- Reset (удали все, Ctrl+R) - will delete all context except for a initial prompt
 - Google something (погугли что-то)
 - Сall NAME (позови Алису)
 
 ## Known bugs
 - if you have missing cuda .dll errors - see this [issue](https://github.com/Mozer/talk-llama-fast/issues/5)
 - if whisper doesn't hear your voice - see this [issue](https://github.com/Mozer/talk-llama-fast/issues/5)
-- `Reset` voice command won't work nice if current context length is over --ctx_size
-- GGML_ASSERT: n_tokens <= n_batch - start prompt in assistant.txt should be < 1024 tokens. (lcparams.n_batch  = 1024; in cpp code, default was 512)
 - Rope context - is not implemented. Use context shifting (enabled by default).
 - sometimes whisper is hallucinating, need to put hallucinations into stop-words. Check `misheard text` in `talk-llama.cpp`
 - don't put cyrillic (русские) letters for characters or paths in .bat files, they may not work nice because of weird encoding. Copy text from .bat, paste into `cmd` if you need to use cyrillic letters with talk-llama-fast.exe.
