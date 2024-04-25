@@ -246,6 +246,7 @@ Full list of commands and variations is in `talk-llama.cpp`, search `user_comman
 - During first run wav2lip will run face detection with a newly added video. It will take about 30-60 s, but it happens just once and then it is saved to cache. And there is a bug with face detection wich slows down everything (memory leak). You need to restart Silly Tavern Extras after face detection is finished.
 - Sometimes wav2lip video window disappears but audio is still playing fine. If the video window doesn't come back automatically - restart Silly Tavern Extras.
 - if you restart xtts you need to restart silly-tavern-extras. Otherwise wav2lip will start playing wrong segments of already created videos.
+- Sometimes when you type fast the first letter of you message is not printed.
 
 ## Licenses
 - talk-llama-fast - MIT License - OK for commercial use
