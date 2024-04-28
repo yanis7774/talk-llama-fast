@@ -149,10 +149,10 @@ with
 ```sentence_delimiters = '.?!;:\n…)]}。'```
 
 #### Optional, google search plugin
-- download search_server.py from my repo
+- download [search_server.py](https://github.com/Mozer/talk-llama-fast/blob/master/search_server.py) from my repo
 - install langchain: `pip install langchain`
-- sign up at https://serper.dev/api-key it is free and fast, it will give you 2500 free searches. Get an API key, paste it to search_server.py at line 15 `os.environ["SERPER_API_KEY"] = "your_key"`
-- start search server by double clicking it. Now you can use voice commands like these: `Please google who is Barack Obama` or `Пожалуйста погугли погоду в Москве`.
+- sign up at https://serper.dev/api-key it is free and fast, it will give you 2500 free searches. Get an API key, paste it to search_server.py at line 13 `os.environ["SERPER_API_KEY"] = "your_key"`
+- start search server by double clicking search_server.py. Now you can use voice commands like these: `Please google who is Barack Obama` or `Пожалуйста погугли погоду в Москве`.
 
 
 ## Building, optional
