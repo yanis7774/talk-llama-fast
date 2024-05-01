@@ -27,15 +27,11 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - wav2lip
 
 ## News
-- [2024.04.25] v0.1.5. Added keyboard input, hotkeys, fixed a bug with 'Reset' context command.
+- [2024.04.30] v0.1.6. Big fix: start prompt was not working correctly.
+- [2024.04.25] v0.1.5. Added keyboard input, hotkeys.
 - [2024.04.17] v0.1.4. Added `--batch-size` (takes 0.6 GB less VRAM then it was before!), `--verbose` (to show speed). Start prompt is now not limited in length. But keep it < ctx_size for speed.
-- [2024.04.14] Source code was broken (conflicting versions, build failed), I synced everything. Builiding should be working now.
-- [2024.04.06] v0.1.3. Removed --xtts-control-path param. No other changes. To make this version work - please update (pip install) my xtts_api_server, tts, and wav2lip if you have previous versions installed.
-- [2024.04.05] v0.1.2. Now everything is installed into 2 separate condas. Redownload zip, follow instructions below.
 - [2024.04.04] v0.1.0. Added streaming wav2lip. With super low latency: from user speech to video it's just 1.5 seconds! Had to rewrite sillyTavern-extras, wav2lip, xtts-api-server, tts (all forked to my github). Streaming wav2lip can be used in SillyTavern. Setup guide and video are coming in a next few days. 
-- [2024.03.10] Updated [xtts patcher](https://github.com/Mozer/talk-llama-fast/tree/master/xtts/xtts_api_server). Now if requested voice doesn't exist, xtts will play first found voice, instead of an error. UPD: patcher is no longer needed, don't use it.
 - [2024.03.09] v0.0.4. New params: `--stop-words` (list for llama separated by semicolon: `;`), `--min-tokens` (min tokens to output), `--split-after` (split first sentence after N tokens for xtts), `--seqrep` (detect loops: 20 symbols in 300 last symbols), `--xtts-intro` (echo random Umm/Well/...  to xtts right after user input). See [0.0.4](https://github.com/Mozer/talk-llama-fast/releases/tag/0.0.4) release for details.
-- [2024.03.05] I added a patcher to support xtts `stop on speech` feature [xtts patcher](https://github.com/Mozer/talk-llama-fast/tree/master/xtts/xtts_api_server)
 - [2024.02.28] v0.0.3 `--multi-chars` param to enable different voice for each character, each one will be sent to xtts, so make sure that you have corresponding .wav files (e.g. alisa.wav). Use with voice command `Call NAME`. Video, in Russian: https://youtu.be/JOoVdHZNCcE or https://t.me/tensorbanana/876
 - `--translate` param for live en_ru translation. Russian user voice is translated ru->en using whisper. Then Llama output is translated en->ru using the same mistral model, inside the same context, without any speed dropouts, no extra vram is needed. This trick gives more reasoning skills to llama in Russian, but instead gives more grammar mistakes. And more text can fit in the context, because it is stored in English, while the translation is deleted from context right after generation of each sentence. `--allow-newline` param. By default, without it llama will stop generation if it finds a new line symbol.
 - [2024.02.25] I added `--vad-start-thold` param for tuning stop on speech detection (default: 0.000270; 0 to turn off). VAD checks current noise level, if it is loud - xtts and llama stops. Turn it up if you are in a noisy room, also check `--print-energy`.
