@@ -27,6 +27,7 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - wav2lip
 
 ## News
+- [2024.05.09] v0.1.7. Added `--push-to-talk` option - hold Alt key to speak (useful with loudspeakers without headphones). And now you can use Cyrillic letters in bat files. Save them using Cyrillic "OEM 866" encoding, notepad++ supports it.
 - [2024.04.30] v0.1.6. Big fix: start prompt was not working correctly.
 - [2024.04.25] v0.1.5. Added keyboard input, hotkeys.
 - [2024.04.17] v0.1.4. Added `--batch-size` (takes 0.6 GB less VRAM then it was before!), `--verbose` (to show speed). Start prompt is now not limited in length. But keep it < ctx_size for speed.
@@ -119,7 +120,7 @@ conda deactivate
 ## Running
 - In /SillyTavern-extras/ double click `silly_extras.bat`. Wait until it downloads wav2lip checkpoint and makes face detection for new video if needed.
 - In /xtts/ double click `xtts_wav2lip.bat` to start xtts server with wav2lip video. OR run xtts_streaming_audio.bat to start xtts server with audio without video. NOTE: On the first run xtts will download DeepSpeed from github. If deepspeed fails to download "Warning: Retyring (Retry... ReadTimoutError...") - turn on VPN to download deepspeed (27MB) and xtts checkpoint (1.8GB), then you can turn it off). Xtts checkpoint can be downloaded without VPN. But if you interrupt download - checkpoint will be broken - you have to manually delete \xtts_models\ dir and restart xtts. 
-- Double click `talk-llama-wav2lip.bat` or `talk-llama-wav2lip-ru.bat` or talk-llama-just-audio.bat. Don't run exe, just bat. NOTE: if you have cyrillic (Russain) letters in bot name or path: don't run bat, instead open cmd in the folder where bats are located. Then copy all commands from talk-llama-wav2lip-ru.bat and paste into cmd (there is en encoding problem with cyrillic letters in bats). Optional: you can make desktop shortcuts to all those .bats for fast access.
+- Double click `talk-llama-wav2lip.bat` or `talk-llama-wav2lip-ru.bat` or talk-llama-just-audio.bat. Don't run exe, just bat. NOTE: if you have cyrillic (Russian) letters in .bat - save it in Cyrillic "OEM 866" encoding (notepadd++ supports it).
 - Start speaking. 
 
 ### Tweaks for 6 and 8 GB vram
@@ -220,6 +221,7 @@ del build\bin\Release\talk-llama.exe & cmake.exe --build build --config release
   --google-url TEXT          [http://localhost:8003/] langchain google-serper server URL, with /
   --allow-newline            [false  ] allow new line in llama output
   --multi-chars              [false  ] xtts will use same wav name as in llama output
+  --push-to-talk             [false  ] hold Alt to speak
   --seqrep                   [false  ] sequence repetition penalty, search last 20 in 300
   --split-after N            [0      ] split after first n tokens for tts
   --min-tokens N             [0      ] min new tokens to output
