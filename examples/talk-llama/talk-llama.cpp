@@ -109,6 +109,7 @@ struct whisper_params {
     bool multi_chars    = false;
     bool xtts_intro     = false;
     bool seqrep         = false;
+    bool push_to_talk   = false;
     int split_after     = 0;
     int sleep_before_xtts = 0; // in ms
 
@@ -192,6 +193,7 @@ bool whisper_params_parse(int argc, const char ** argv, whisper_params & params)
         else if (arg == "--xtts-intro")                      { params.xtts_intro     = true; }
         else if (arg == "--sleep-before-xtts")               { params.sleep_before_xtts = std::stoi(argv[++i]); }
         else if (arg == "--seqrep")                          { params.seqrep         = true; }
+        else if (arg == "--push-to-talk")                    { params.push_to_talk   = true; }
         else if (arg == "--split-after")                     { params.split_after    = std::stoi(argv[++i]); }
         else if (arg == "--min-tokens")                      { params.min_tokens     = std::stoi(argv[++i]); }
 		else if (arg == "--stop-words")                      { params.stop_words     = argv[++i]; }
@@ -264,6 +266,7 @@ void whisper_print_usage(int /*argc*/, const char ** argv, const whisper_params 
     fprintf(stderr, "  --google-url TEXT          [%-7s] langchain google-serper server URL, with /\n",  params.google_url.c_str());
     fprintf(stderr, "  --allow-newline            [%-7s] allow new line in llama output\n",              params.allow_newline ? "true" : "false");
     fprintf(stderr, "  --multi-chars              [%-7s] xtts will use same wav name as in llama output\n", params.multi_chars ? "true" : "false");
+    fprintf(stderr, "  --push-to-talk             [%-7s] hold Alt to speak\n",							 params.push_to_talk ? "true" : "false");
     fprintf(stderr, "  --seqrep                   [%-7s] sequence repetition penalty, search last 20 in 300\n",params.seqrep ? "true" : "false");
     fprintf(stderr, "  --split-after N            [%-7d] split after first n tokens for tts\n",          params.split_after);
     fprintf(stderr, "  --min-tokens N             [%-7d] min new tokens to output\n",                    params.min_tokens);
@@ -873,7 +876,7 @@ bool IsConsoleWindowFocused(HWND cur_window_handle) {
 // Regenerate: Ctrl+Right
 // Delete: Ctrl+Delete
 // Reset: Ctrl+R
-// modifies global var g_hotkey_pressed 
+// modifies global var string g_hotkey_pressed 
 void keyboard_shortcut_func(HWND cur_window_handle) {
     bool b_ctr_space_processed = false;
     bool b_ctr_right_processed = false;
@@ -887,6 +890,7 @@ void keyboard_shortcut_func(HWND cur_window_handle) {
     bool b_ctr_right = false;
     bool b_ctr_delete = false;
     bool b_ctr_r = false;
+    bool b_alt = false;
     bool isFocused = false;
 	g_hotkey_pressed = "";
 
@@ -897,13 +901,20 @@ void keyboard_shortcut_func(HWND cur_window_handle) {
             b_ctr_right = GetAsyncKeyState(VK_CONTROL) & GetAsyncKeyState(VK_RIGHT) & 0x8000;
             b_ctr_delete = GetAsyncKeyState(VK_CONTROL) & GetAsyncKeyState(VK_DELETE) & 0x8000;
             b_ctr_r = GetAsyncKeyState(VK_CONTROL) & GetAsyncKeyState('R') & 0x8000;
-
+            b_alt = GetAsyncKeyState(VK_MENU) & 0x8000;
+			
+			if (b_alt)
+			{
+				g_hotkey_pressed = "Alt";
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				continue; // no further if-else for Alt PTT
+			}			
+				
             if (b_ctr_space && !b_ctr_space_prev) {
                 if (!b_ctr_space_processed) {
                     fflush(stdout);
 					printf("\b"); // remove printed symbols
 					fflush(stdout);
-					//std::cout << "Ctrl+Space pressed\n" << std::endl;
 					g_hotkey_pressed = "Ctrl+Space";
                     b_ctr_space_processed = true;
                 }
@@ -917,7 +928,6 @@ void keyboard_shortcut_func(HWND cur_window_handle) {
 					fflush(stdout);
 					printf("\b"); // remove printed symbols
 					fflush(stdout);					
-                    //std::cout << "Ctrl+Right pressed\n" << std::endl;
 					g_hotkey_pressed = "Ctrl+Right";
                     b_ctr_right_processed = true;
                 }
@@ -928,7 +938,6 @@ void keyboard_shortcut_func(HWND cur_window_handle) {
 
             if (b_ctr_delete && !b_ctr_delete_prev) {
                 if (!b_ctr_delete_processed) {
-                    //std::cout << "Ctrl+Delete pressed\n" << std::endl;
 					fflush(stdout);
 					printf("\b"); // remove printed symbols
 					fflush(stdout);	
@@ -945,7 +954,6 @@ void keyboard_shortcut_func(HWND cur_window_handle) {
 					fflush(stdout);
 					printf("\b\b"); // remove printed ^R
 					fflush(stdout);
-                    //std::cout << "Ctrl+R pressed\n" << std::endl;
 					g_hotkey_pressed = "Ctrl+R";
                     b_ctr_r_processed = true;
                 }
@@ -959,6 +967,7 @@ void keyboard_shortcut_func(HWND cur_window_handle) {
             b_ctr_delete_prev = b_ctr_delete;
             b_ctr_r_prev = b_ctr_r;
 		}
+		
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
@@ -1312,8 +1321,9 @@ int run(int argc, const char ** argv) {
         keyboard_shortcut_func(cur_window_handle);
     });
 	printf("\nVoice commands: Stop(Ctrl+Space), Regenerate(Ctrl+Right), Delete(Ctrl+Delete), Reset(Ctrl+R)\n");
-	printf("Start speaking or typing:\n");
-
+	if (params.push_to_talk) printf("Type anything or hold 'Alt' to speak:\n");
+	else printf("Start speaking or typing:\n");
+	
 	printf("\n\n");
     printf("%s%s ", params.person.c_str(), chat_symb.c_str());
     fflush(stdout);
@@ -1363,8 +1373,7 @@ int run(int argc, const char ** argv) {
 		
 		// hotkeys
 		if (g_hotkey_pressed.size())
-		{
-			user_typed_this = true; // maybe another state?
+		{			
 			if (g_hotkey_pressed == "Ctrl+Space") {
 				user_typed = "Stop";
 			} else if (g_hotkey_pressed == "Ctrl+Right") {
@@ -1374,7 +1383,12 @@ int run(int argc, const char ** argv) {
 			} else if (g_hotkey_pressed == "Ctrl+R") {
 				user_typed = "Reset";
 			}
-			g_hotkey_pressed = "";
+			
+			if (g_hotkey_pressed != "Alt") 
+			{
+				user_typed_this = true;
+				g_hotkey_pressed = "";
+			}
 		}
 
 		// audio
@@ -1392,14 +1406,21 @@ int run(int argc, const char ** argv) {
 					speech_start_ms = get_current_time_ms(); // float
 					vad_result_prev = 1;
 					
-					// whisper warmup request
+					// whisper warmup request, not real one
 					//audio.get((int)(speech_len*1000), pcmf32_cur);					
 					//printf("%.3f after vad-start, before pre transcribe (%d)\n", get_current_time_ms(), pcmf32_cur.size());
-                    all_heard_pre = ::trim(::transcribe(ctx_wsp, params, pcmf32_cur, prompt_whisper, prob0, t_ms));	// try with small size audio
+					if (!params.push_to_talk || (params.push_to_talk && g_hotkey_pressed == "Alt"))
+					{
+						all_heard_pre = ::trim(::transcribe(ctx_wsp, params, pcmf32_cur, prompt_whisper, prob0, t_ms));	// warmup - try with small size audio
+						g_hotkey_pressed = "";
+					}
 					//printf("%.3f after pre transcribe (%d)\n", get_current_time_ms(), pcmf32_cur.size());	
 				}
 				// user has started speaking, xtts cannot play
-				allow_xtts_file(params.xtts_control_path, 0);
+				if (!params.push_to_talk || (params.push_to_talk && g_hotkey_pressed == "Alt"))
+				{
+					allow_xtts_file(params.xtts_control_path, 0);
+				}
 			}		
             if (vad_result >= 2 && vad_result_prev == 1 || force_speak || user_typed.size())  // speech ended or user typed
 			{
@@ -1425,15 +1446,19 @@ int run(int argc, const char ** argv) {
                 //audio.get((int)(speech_len*1000), pcmf32_cur);	// was 10000 ms			
                 audio.get(10000, pcmf32_cur);	// was 10000 ms			
                 std::string all_heard;
-				// get transcribe from whisper
                 //printf("%.3f after vad-end (%d)\n", get_current_time_ms(), pcmf32_cur.size());
 				if (user_typed.size())
 				{
 					all_heard = user_typed;
 					user_typed = "";
 				}
-				else if (!force_speak) {
-                    all_heard = ::trim(::transcribe(ctx_wsp, params, pcmf32_cur, prompt_whisper, prob0, t_ms));
+				else if (!force_speak) 
+				{
+					if (!params.push_to_talk || (params.push_to_talk && g_hotkey_pressed == "Alt"))
+					{
+						all_heard = ::trim(::transcribe(ctx_wsp, params, pcmf32_cur, prompt_whisper, prob0, t_ms)); // real transcribe
+						g_hotkey_pressed = "";
+					}
                 }
 				//printf("%.3f after real whisper\n", get_current_time_ms());
 
@@ -1770,6 +1795,7 @@ int run(int argc, const char ** argv) {
                 if (text_heard.empty() || tokens.empty() || force_speak) {
                     //fprintf(stdout, "%s: Heard nothing, skipping ...\n", __func__);
                     audio.clear();
+					g_hotkey_pressed = "";
 
                     continue;
                 }
@@ -1789,7 +1815,11 @@ int run(int argc, const char ** argv) {
                 else text_heard.insert(0, "\n"+params.person + chat_symb + " ");
                 text_heard += "\n" + params.bot_name + chat_symb;
                 
-				if (user_typed_this) fprintf(stdout, "%s%s%s", "\033[1m", params.bot_name + chat_symb, "\033[0m");
+				if (user_typed_this) 
+				{
+					fprintf(stdout, "%s%s%s", "\033[1m", params.bot_name + chat_symb, "\033[0m");
+					g_hotkey_pressed = "";
+				}
 				else fprintf(stdout, "%s%s%s", "\033[1m", text_heard.c_str(), "\033[0m");				
                 fflush(stdout);
 				int split_after = params.split_after;
@@ -2033,12 +2063,11 @@ int run(int argc, const char ** argv) {
 							// STOP on speech or hotkey for llama, every 2 tokens
 							if (new_tokens % 2 == 0)
 							{
-								
-									
 								// check energy level, if user is speaking (it doesn't call whisper recognition, just a loud noise will stop everything)
 								audio.get(2000, pcmf32_cur); // non-blocking, 2000 step_ms
 								int vad_result = ::vad_simple_int(pcmf32_cur, WHISPER_SAMPLE_RATE, params.vad_last_ms, params.vad_thold, params.freq_thold, params.print_energy, params.vad_start_thold);
-								if (vad_result == 1 || g_hotkey_pressed == "Ctrl+Space") // speech started
+								
+								if (!params.push_to_talk && vad_result == 1 || g_hotkey_pressed == "Ctrl+Space" || g_hotkey_pressed == "Alt") // speech started
 								{
 									llama_interrupted = 1;
 									llama_interrupted_time = get_current_time_ms();
@@ -2047,7 +2076,7 @@ int run(int argc, const char ** argv) {
 									done = true; // llama generation stop
 									g_hotkey_pressed = "";
 									break;
-								}
+								}								
 							}
 							//	clear mic
 							if (new_tokens == 20 && !llama_interrupted)
@@ -2115,16 +2144,19 @@ int run(int argc, const char ** argv) {
 										if (params.sleep_before_xtts) std::this_thread::sleep_for(std::chrono::milliseconds(params.sleep_before_xtts)); // 1s pause to speed up xtts/wav2lip inference
 										
 										// check energy level, if user is speaking (it doesn't call whisper recognition, just a loud noise will stop everything)
-										audio.get(2000, pcmf32_cur); // non-blocking, 2000 step_ms
-										int vad_result = ::vad_simple_int(pcmf32_cur, WHISPER_SAMPLE_RATE, params.vad_last_ms, params.vad_thold, params.freq_thold, params.print_energy, params.vad_start_thold);
-										if (vad_result == 1) // speech started
+										if (!params.push_to_talk || params.push_to_talk && g_hotkey_pressed == "Alt")
 										{
-											llama_interrupted = 1;
-											llama_interrupted_time = get_current_time_ms();
-											printf(" [Speech!]\n");
-											allow_xtts_file(params.xtts_control_path, 0); // xtts stop
-											done = true; // llama generation stop
-											break;
+											audio.get(2000, pcmf32_cur); // non-blocking, 2000 step_ms
+											int vad_result = ::vad_simple_int(pcmf32_cur, WHISPER_SAMPLE_RATE, params.vad_last_ms, params.vad_thold, params.freq_thold, params.print_energy, params.vad_start_thold);
+											if (vad_result == 1) // speech started
+											{
+												llama_interrupted = 1;
+												llama_interrupted_time = get_current_time_ms();
+												printf(" [Speech!]\n");
+												allow_xtts_file(params.xtts_control_path, 0); // xtts stop
+												done = true; // llama generation stop
+												break;
+											}
 										}
 									}
 									catch (const std::exception& ex) {
@@ -2304,6 +2336,7 @@ int run(int argc, const char ** argv) {
 				llama_interrupted = 0;
 				llama_interrupted_time = 0.0;
 				llama_start_generation_time = 0.0;
+				g_hotkey_pressed = "";
             }
         }
     }
