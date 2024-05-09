@@ -27,7 +27,7 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - wav2lip
 
 ## News
-- [2024.05.09] v0.1.7. Added `--push-to-talk` option - hold Alt key to speak (useful with loudspeakers without headphones). And now you can use Cyrillic letters in bat files. Save them using Cyrillic "OEM 866" encoding, notepad++ supports it.
+- [2024.05.09] v0.1.7. Added `--push-to-talk` option: hold "Alt" key to speak (useful with loudspeakers without headphones). And now you can use Cyrillic letters in bat files. Save them using Cyrillic "OEM 866" encoding, notepad++ supports it.
 - [2024.04.30] v0.1.6. Big fix: start prompt was not working correctly.
 - [2024.04.25] v0.1.5. Added keyboard input, hotkeys.
 - [2024.04.17] v0.1.4. Added `--batch-size` (takes 0.6 GB less VRAM then it was before!), `--verbose` (to show speed). Start prompt is now not limited in length. But keep it < ctx_size for speed.
