@@ -27,6 +27,7 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - wav2lip
 
 ## News
+- [2024.05.17] Added `talk-llama-fast-v0.1.7_no_avx2.zip` for old CPUs without AVX2 instructions (e.g. Intel i5-2500K). Use it if main version crashes without an error.
 - [2024.05.09] v0.1.7. Added `--push-to-talk` option: hold "Alt" key to speak (useful with loudspeakers without headphones). And now you can use Cyrillic letters in bat files. Save them using Cyrillic "OEM 866" encoding, notepad++ supports it.
 - [2024.04.30] v0.1.6. Big fix: start prompt was not working correctly.
 - [2024.04.25] v0.1.5. Added keyboard input, hotkeys.
@@ -171,6 +172,8 @@ set SDL2_DIR=SDL2\cmake
 cmake.exe -DWHISPER_SDL2=ON -DWHISPER_CUBLAS=1 -DCMAKE_TOOLCHAIN_FILE="c:\\DATA\\Soft\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" -B build
 cmake.exe --build build --config release --target clean
 del build\bin\Release\talk-llama.exe & cmake.exe --build build --config release
+
+for old CPU's without AVX2: cmake.exe -DWHISPER_NO_AVX2=1 -DWHISPER_SDL2=ON -DWHISPER_CUBLAS=1 -DCMAKE_TOOLCHAIN_FILE="c:\\DATA\\Soft\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" -B build
 ```
 
 
