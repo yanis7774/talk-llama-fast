@@ -267,3 +267,5 @@ Full list of commands and variations is in `talk-llama.cpp`, search `user_comman
 Reddit: https://www.reddit.com/user/tensorbanana2
 
 ТГ: https://t.me/tensorbanana
+
+Donate: https://github.com/Mozer/donate
