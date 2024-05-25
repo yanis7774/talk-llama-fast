@@ -2,7 +2,7 @@
 
 based on talk-llama https://github.com/ggerganov/whisper.cpp
 
-[new] Видео-инструкция на русском (Russian guide, English subs): https://youtu.be/0MEZ84uH4-E
+Видео-инструкция на русском (Russian guide, English subs): https://youtu.be/0MEZ84uH4-E
 
 English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 
@@ -27,6 +27,7 @@ English demo video, v0.1.3: https://www.youtube.com/watch?v=ORDfSG4ltD4
 - wav2lip
 
 ## News
+- [2024.05.25] Created telegram bot with multiple characters: https://t.me/talkllama And added donation page: https://github.com/Mozer/donate
 - [2024.05.17] Added `talk-llama-fast-v0.1.7_no_avx2.zip` for old CPUs without AVX2 instructions (e.g. Intel i5-2500K). Use it if main version crashes without an error.
 - [2024.05.09] v0.1.7. Added `--push-to-talk` option: hold "Alt" key to speak (useful with loudspeakers without headphones). And now you can use Cyrillic letters in bat files. Save them using Cyrillic "OEM 866" encoding, notepad++ supports it.
 - [2024.04.30] v0.1.6. Big fix: start prompt was not working correctly.
